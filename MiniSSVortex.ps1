@@ -21,7 +21,9 @@ Write-Host " Output File         : $OutputFile" -ForegroundColor Gray
 Write-Host "--------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
-# --- ASCII Art: Bart Simpson ---
+=============================================
+   This Tool Made By: ThereWasVelocity
+=============================================
 Write-Host "       |\/\/\/\/|" -ForegroundColor Yellow
 Write-Host "       |        |"
 Write-Host "       |  (o) (o)"
