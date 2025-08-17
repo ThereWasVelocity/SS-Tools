@@ -21,7 +21,7 @@ Write-Host " Output File         : $OutputFile" -ForegroundColor Gray
 Write-Host "--------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
-# --- ASCII Art with custom author ---
+# --- ASCII Art: Bart Simpson ---
 Write-Host "       |\/\/\/\/|" -ForegroundColor Yellow
 Write-Host "       |        |"
 Write-Host "       |  (o) (o)"
@@ -29,7 +29,7 @@ Write-Host "       C        _)"
 Write-Host "        |  ,____|"
 Write-Host "        |     /"
 Write-Host "       /______\"
-Write-Host "      /        \        - Made By ThereWasVelocity"
+Write-Host "      /        \        - Bart Simpson"
 Write-Host ""
 
 # --- Initialization ---
