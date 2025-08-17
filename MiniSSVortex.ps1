@@ -31,7 +31,7 @@ Write-Host "       C        _)"
 Write-Host "        |  ,____|"
 Write-Host "        |     /"
 Write-Host "       /______\"
-Write-Host "      /        \        - Bart Simpson"
+Write-Host "      /        \        - Made By ThereWasVelocity"
 Write-Host ""
 
 # --- Initialization ---
