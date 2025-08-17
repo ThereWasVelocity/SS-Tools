@@ -1,67 +1,82 @@
 <#
 .SYNOPSIS
-  Mini SS Vortex
-  Scans recursively for .jar files and detects suspicious strings.
-  Exports findings to CSV.
+  Mini SS Vortex - Pro Version with ASCII Art
+  Scans .jar files for suspicious strings and exports results to CSV.
 #>
 
-# --- Banner ---
-Write-Host @"
-=============================================
-   This Tool Made By: ThereWasVelocity
-=============================================
+param (
+    [string]$ScanPath = "C:\Users",
+    [string[]]$SuspiciousStrings = @("mod_d.classUT", "Lcom/mojang/brigadier/"),
+    [string]$OutputFile = "$PSScriptRoot\ScanResults.csv"
+)
 
-       |\/\/\/\/|
-       |        |
-       |  (o) (o)
-       C        _)
-        |  ,____|
-        |     /
-       /______\
-      /        \
-      
-          Bart Simpson
-=============================================
-"@ -ForegroundColor Yellow
+# --- Clear & Themed Header ---
+Clear-Host
+Write-Host "==================================================" -ForegroundColor DarkGray
+Write-Host "               Mini SS VORTEX SCANNER             " -ForegroundColor Cyan
+Write-Host "==================================================" -ForegroundColor DarkGray
+Write-Host " Target Path         : $ScanPath" -ForegroundColor Gray
+Write-Host " Suspicious Strings  : $($SuspiciousStrings -join ', ')" -ForegroundColor Gray
+Write-Host " Output File         : $OutputFile" -ForegroundColor Gray
+Write-Host "--------------------------------------------------" -ForegroundColor DarkGray
+Write-Host ""
 
-Write-Host -ForegroundColor Cyan " __  __  _        _        ___  ___"
-Write-Host -ForegroundColor Cyan "|  \/  |(_) _ _  (_)      / __|/ __|"
-Write-Host -ForegroundColor White "| |\/| || || ' \ | |      \__ \\__ \"
-Write-Host -ForegroundColor White "|_|  |_||_||_||_||_|      |___/|___/"
-Write-Host
-Write-Host -ForegroundColor White "      Mini SS VORTEX"
+# --- ASCII Art: Bart Simpson ---
+Write-Host "       |\/\/\/\/|" -ForegroundColor Yellow
+Write-Host "       |        |"
+Write-Host "       |  (o) (o)"
+Write-Host "       C        _)"
+Write-Host "        |  ,____|"
+Write-Host "        |     /"
+Write-Host "       /______\"
+Write-Host "      /        \        - Bart Simpson"
+Write-Host ""
 
-# --- Settings ---
-$extensions = "*.jar"
-$strings    = "mod_d.classUT"
-$path       = "C:\Users"
-
-# --- Progress ---
-$i = 0
-$total = (Get-ChildItem -Path $path -Include $extensions -Recurse -File -ErrorAction SilentlyContinue).Count
-Write-Progress -Activity "Expanding subdirectories..." -Status "Analyzing" -PercentComplete 0
-
-$ErrorActionPreference = 'SilentlyContinue'
+# --- Initialization ---
+$ErrorActionPreference = "SilentlyContinue"
 $results = @()
+$jarFiles = Get-ChildItem -Path $ScanPath -Recurse -Filter *.jar -File
 
-# --- Scan Files ---
-Get-ChildItem -Path $path -Include $extensions -Recurse -File | ForEach-Object { 
-    $file = $_
-    $content = Get-Content $file.FullName -Raw
-    foreach($string in $strings){
-        if($content.Contains($string)){
-            $results += [PSCustomObject]@{
-                FileName      = $file.FullName
-                StringMatched = $string
-            }
-        }
-    }
-    $i++
-    Write-Progress -Activity "Searching for files" -Status "Processing" -PercentComplete (($i/$total)*100)
+if (-not $jarFiles) {
+    Write-Host "[ERROR] No .jar files found in path." -ForegroundColor Red
+    Read-Host "`nPress ENTER to exit"
+    exit
 }
 
-$ErrorActionPreference = 'Continue'
+$total = $jarFiles.Count
+$counter = 0
+$startTime = Get-Date
+Write-Host "[INFO] Found $total .jar files. Starting scan..." -ForegroundColor Cyan
+Write-Host ""
 
-# --- Export Results ---
-$results | Export-Csv -Path "FullScan.csv" -NoTypeInformation -Force
-Write-Host "`nResults saved in current directory as FullScan.csv" -ForegroundColor Green
+# --- Main Scan Loop ---
+foreach ($file in $jarFiles) {
+    $hits = Select-String -Path $file.FullName -Pattern $SuspiciousStrings -SimpleMatch
+    foreach ($hit in $hits) {
+        $results += [PSCustomObject]@{
+            File       = $file.FullName
+            Line       = $hit.Line.Trim()
+            LineNumber = $hit.LineNumber
+        }
+    }
+
+    $counter++
+    Write-Progress -Activity "Scanning .jar files..." -Status "$counter / $total" -PercentComplete (($counter / $total) * 100)
+}
+
+# --- Output Results ---
+Write-Host ""
+if ($results.Count -gt 0) {
+    $results | Export-Csv -Path $OutputFile -NoTypeInformation -Force
+    Write-Host "[DONE] Found $($results.Count) suspicious entries." -ForegroundColor Yellow
+    Write-Host "[DONE] Results exported to: $OutputFile" -ForegroundColor Green
+} else {
+    Write-Host "[DONE] No suspicious strings were found." -ForegroundColor Green
+}
+
+$elapsed = (Get-Date) - $startTime
+Write-Host "[TIME] Scan completed in $([math]::Round($elapsed.TotalSeconds, 2)) seconds." -ForegroundColor DarkGray
+
+# --- Exit Pause ---
+Write-Host ""
+Read-Host "Press ENTER to close"
