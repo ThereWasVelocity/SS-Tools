@@ -177,68 +177,6 @@ if ($jarFiles) {
 } else {
     Write-Host "[INFO] No .jar files found in $ScanPath." -ForegroundColor Red
 }
-Write-Host ""
-
-# --- Extract Usernames from .log and .gz files ---
-$startPath = "C:\Users"
-
-if (Test-Path $startPath) {
-    Write-Host "Finding usernames from .log and .gz files..." -ForegroundColor Cyan
-
-    $gzFiles = Get-ChildItem -Path $startPath -Recurse -Filter "*.gz" -File -Force -ErrorAction SilentlyContinue
-    $logFiles = Get-ChildItem -Path $startPath -Recurse -Filter "*.log" -File -Force -ErrorAction SilentlyContinue
-    $allFiles = @($gzFiles) + @($logFiles)
-
-    $userResults = @()
-
-    foreach ($file in $allFiles) {
-        try {
-            $content = $null
-            $isGz = $file.Extension -eq ".gz"
-            
-            if ($isGz) {
-                $tempFileName = "$($file.BaseName)_temp_$([guid]::NewGuid().ToString('N')).txt"
-                $tempOutput = Join-Path $file.DirectoryName $tempFileName
-                
-                $inputStream = [System.IO.File]::OpenRead($file.FullName)
-                $outputStream = [System.IO.File]::Create($tempOutput)
-                $gzipStream = New-Object System.IO.Compression.GZipStream($inputStream, [System.IO.Compression.CompressionMode]::Decompress)
-                
-                $gzipStream.CopyTo($outputStream)
-                
-                $gzipStream.Close()
-                $outputStream.Close()
-                $inputStream.Close()
-                
-                $content = Get-Content $tempOutput -Raw -ErrorAction SilentlyContinue
-                Remove-Item $tempOutput -Force -ErrorAction SilentlyContinue
-            } else {
-                $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-            }
-            
-            $pattern = "Setting user:\s*(\S+)"
-            if ($content -and $content -match $pattern) {
-                $userResults += [PSCustomObject]@{
-                    "Usernames" = $Matches[1]
-                    "Path" = $file.FullName
-                }
-            }
-        }
-        catch {
-            continue
-        }
-    }
-
-    if ($userResults.Count -gt 0) {
-        Write-Host "`nUsernames found:" -ForegroundColor Yellow
-        $userResults | ForEach-Object {
-            Write-Host ("{0,-20}" -f $_.Usernames) -ForegroundColor Magenta -NoNewline
-            Write-Host $_.Path -ForegroundColor Green
-        }
-    } else {
-        Write-Host "No usernames found in .log or .gz files." -ForegroundColor Green
-    }
-}
 
 Write-Host ""
 Read-Host "Press any key to exit..."
