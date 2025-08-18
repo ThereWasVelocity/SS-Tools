@@ -132,7 +132,6 @@ Write-Host ""
 
 Write-Host "Event Log Checks:" -ForegroundColor Yellow
 Check-EventLog "Application" 3079 "USN Journal last deleted"
-Check-RecentEventLog "System" @(104, 1102) "Event Logs last cleared"
 Check-EventLog "System" 1074 "User recent PC Shutdown"
 Check-EventLog "Security" 4616 "System time changed"
 Check-EventLog "System" 6005 "Event Log Service started"
